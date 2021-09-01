@@ -4,7 +4,7 @@
   "description": "Apply specific themes when viewing specific server",
   "scripts": {
     "build": "tsc && vite build",
-    "install": "node --experimental-json-modules install.mjs"
+    "install-plugin": "node --experimental-json-modules install.mjs"
   },
   "main": "./src/main.tsx",
   "author": {
