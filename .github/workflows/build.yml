@@ -22,6 +22,10 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Rename plugin file
+        run: |
+          mv ./dist/serverthemes.plugin.cjs.js ./dist/serverthemes.plugin.js
+
       - name: Push changes
         uses: s0/git-publish-subdir-action@develop
         env:
