@@ -1,0 +1,29 @@
+{
+  "name": "serverthemes",
+  "version": "2.0.0",
+  "description": "Apply specific themes when viewing specific server",
+  "scripts": {
+    "build": "tsc && vite build",
+    "install": "node --experimental-json-modules install.mjs"
+  },
+  "main": "./src/main.tsx",
+  "author": {
+    "name": "Mike Orozco",
+    "email": "me@mikeorozco.dev",
+    "url": "https://mikeorozco.dev"
+  },
+  "betterdiscord": {
+    "display_name": "DeNial",
+    "discord_snowflake": "142347724392497152",
+    "website": "https://mikeorozco.dev"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.19",
+    "@types/react-dom": "^17.0.9",
+    "sass": "^1.38.2",
+    "typescript": "^4.3.2",
+    "vite": "^2.5.2",
+    "vite-plugin-banner": "^0.1.3",
+    "vite-plugin-singlefile": "^0.5.1"
+  }
+}

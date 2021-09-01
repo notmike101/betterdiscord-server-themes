@@ -1,0 +1,27 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background-primary);
+
+  .row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+
+    .serverName {
+      width: auto;
+      color: var(--text-normal);
+      display: inline-block;
+    }
+
+    .themeChoice {
+      display: flex;
+      flex: 1;
+      margin-left: 10px;
+      background-color: var(--interactive-hover);
+      padding: 5px;
+    }
+  }
+}
