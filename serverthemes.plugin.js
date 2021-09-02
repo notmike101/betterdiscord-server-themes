@@ -5,7 +5,9 @@
  * @author DeNial
  * @authorLink https://mikeorozco.dev
  * @authorId 142347724392497152
+ * @updateUrl https://raw.githubusercontent.com/notmike101/betterdiscord-server-themes/release/serverthemes.plugin.js
  * @website https://mikeorozco.dev
+ * @source https://github.com/notmike101/betterdiscord-server-themes
  */
 
 'use strict';
