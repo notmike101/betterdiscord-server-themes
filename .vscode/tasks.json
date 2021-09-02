@@ -12,11 +12,11 @@
 		
 		{
 			"type": "npm",
-			"script": "install",
+			"script": "install-plugin",
 			"group": "build",
 			"problemMatcher": [],
-			"label": "npm: install",
-			"detail": "node --experimental-json-modules index.mjs"
+			"label": "npm: install-plugin",
+			"detail": "node --experimental-json-modules install.mjs"
 		}
 	]
 }
