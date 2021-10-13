@@ -1,6 +1,6 @@
 /**
  * @name serverthemes
- * @version 2.0.0
+ * @version 2.1.0
  * @description Apply specific themes when viewing specific server
  * @author DeNial
  * @authorLink https://mikeorozco.dev
@@ -63,8 +63,10 @@ module.exports = class DiscordPlugin {
     this.themeAssignments = {};
   }
   get guildId() {
-    const getLastSelectedGuildId = BdApi.findModuleByProps("getLastSelectedGuildId");
-    return getLastSelectedGuildId.getGuildId();
+    let guildId = BdApi.findModuleByProps("getGuildId").getGuildId();
+    if (guildId === null)
+      return "noguild";
+    return guildId;
   }
   get themes() {
     const themes = BdApi.Themes.getAll().map((theme) => theme.id);
@@ -72,7 +74,13 @@ module.exports = class DiscordPlugin {
     return themes;
   }
   get guilds() {
-    return Object.values(BdApi.findModuleByProps("getGuild").getGuilds());
+    const guilds = Object.values(BdApi.findModuleByProps("getGuild").getGuilds());
+    const noServer = {
+      id: "noguild",
+      name: "No guild"
+    };
+    guilds.unshift(noServer);
+    return guilds;
   }
   loadServerTheme(guildId) {
     const themeName = this.themeAssignments[guildId ?? "Default"];
