@@ -1,6 +1,6 @@
 {
   "name": "serverthemes",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Apply specific themes when viewing specific server",
   "scripts": {
     "build": "tsc && vite build",

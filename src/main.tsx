@@ -12,10 +12,11 @@ module.exports = class DiscordPlugin {
     this.themeAssignments = {};
   }
 
-  get guildId(): string | null {
-    const getLastSelectedGuildId: any = BdApi.findModuleByProps('getLastSelectedGuildId');
+  get guildId(): string {
+    let guildId: string = BdApi.findModuleByProps('getGuildId').getGuildId()
 
-    return getLastSelectedGuildId.getGuildId();
+    if (guildId === null) return 'noguild';
+    return guildId;
   }
 
   get themes(): string[] {
@@ -27,7 +28,15 @@ module.exports = class DiscordPlugin {
   }
 
   get guilds(): Guild[] {
-    return Object.values(BdApi.findModuleByProps('getGuild').getGuilds());
+    const guilds: Guild[] = Object.values(BdApi.findModuleByProps('getGuild').getGuilds());
+    const noServer: Guild = {
+      id: 'noguild',
+      name: 'No guild',
+    };
+
+    guilds.unshift(noServer);
+
+    return guilds;
   }
 
   protected loadServerTheme(guildId: string | null): void {
