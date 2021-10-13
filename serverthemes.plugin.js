@@ -63,7 +63,7 @@ module.exports = class DiscordPlugin {
     this.themeAssignments = {};
   }
   get guildId() {
-    let guildId = BdApi.findModuleByProps("getGuildId").getGuildId();
+    const guildId = BdApi.findModuleByProps("getGuildId").getGuildId();
     if (guildId === null)
       return "noguild";
     return guildId;
