@@ -13,7 +13,7 @@ module.exports = class DiscordPlugin {
   }
 
   get guildId(): string {
-    let guildId: string = BdApi.findModuleByProps('getGuildId').getGuildId()
+    const guildId: string = BdApi.findModuleByProps('getGuildId').getGuildId()
 
     if (guildId === null) return 'noguild';
     return guildId;
