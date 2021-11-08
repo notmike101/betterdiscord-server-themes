@@ -1,6 +1,6 @@
 /**
  * @name serverthemes
- * @version 2.1.0
+ * @version 2.2.0
  * @description Apply specific themes when viewing specific server
  * @author DeNial
  * @authorLink https://mikeorozco.dev
@@ -63,13 +63,15 @@ module.exports = class DiscordPlugin {
     this.themeAssignments = {};
   }
   get guildId() {
-    const guildId = BdApi.findModuleByProps("getGuildId").getGuildId();
-    if (guildId === null)
-      return "noguild";
+    const history = BdApi.findModuleByProps("getHistory").getHistory();
+    let guildId = history.location.pathname.split("/").filter(Boolean)[1];
+    if (!guildId || guildId === "@me") {
+      guildId = "noguild";
+    }
     return guildId;
   }
   get themes() {
-    const themes = BdApi.Themes.getAll().map((theme) => theme.id);
+    const themes = BdApi.Themes.getAll().map(({ id: themeId }) => themeId);
     themes.unshift("Default");
     return themes;
   }
@@ -84,13 +86,8 @@ module.exports = class DiscordPlugin {
   }
   loadServerTheme(guildId) {
     const themeName = this.themeAssignments[guildId ?? "Default"];
-    if (BdApi.Themes.isEnabled(themeName))
-      return;
     this.themes.forEach((theme) => {
-      if (BdApi.Themes.isEnabled(theme))
-        BdApi.Themes.disable(theme);
-      else if (theme === themeName)
-        BdApi.Themes.enable(theme);
+      BdApi.Themes[theme === themeName ? "enable" : "disable"](theme);
     });
   }
   updateSettings(guildId, event) {
@@ -110,9 +107,9 @@ module.exports = class DiscordPlugin {
   }
   load() {
     this.themeAssignments = BdApi.loadData("ServerThemes", "themeAssignments") ?? {};
-    this.guilds.forEach((guild) => {
-      if (this.themeAssignments[guild.id] === void 0) {
-        this.themeAssignments[guild.id] = "Default";
+    this.guilds.forEach(({ id: guildId }) => {
+      if (this.themeAssignments[guildId] === void 0) {
+        this.themeAssignments[guildId] = "Default";
       }
     });
   }
