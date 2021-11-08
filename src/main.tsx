@@ -13,14 +13,18 @@ module.exports = class DiscordPlugin {
   }
 
   get guildId(): string {
-    const guildId: string = BdApi.findModuleByProps('getGuildId').getGuildId()
+    const history = BdApi.findModuleByProps('getHistory').getHistory();
+    let guildId: string = history.location.pathname.split('/').filter(Boolean)[1];
 
-    if (guildId === null) return 'noguild';
+    if (!guildId || guildId === '@me') {
+      guildId = 'noguild';
+    }
+
     return guildId;
   }
 
   get themes(): string[] {
-    const themes = BdApi.Themes.getAll().map((theme: Theme) => theme.id);
+    const themes: string[] = BdApi.Themes.getAll().map(({ id: themeId }: Theme) => themeId);
 
     themes.unshift('Default');
 
@@ -42,16 +46,14 @@ module.exports = class DiscordPlugin {
   protected loadServerTheme(guildId: string | null): void {
     const themeName: string = this.themeAssignments[guildId ?? 'Default'];
 
-    if (BdApi.Themes.isEnabled(themeName)) return;
-
     this.themes.forEach((theme: string) => {
-      if (BdApi.Themes.isEnabled(theme)) BdApi.Themes.disable(theme);
-      else if (theme === themeName) BdApi.Themes.enable(theme);
+      BdApi.Themes[theme === themeName ? 'enable' : 'disable'](theme);
     });
   }
 
   protected updateSettings(guildId: string, event: any): void {
     this.themeAssignments[guildId] = event.target.value;
+
     BdApi.setData(import.meta.env.VITE_PLUGIN_CODE, 'themeAssignments', this.themeAssignments);
     
     if (this.guildId === guildId) {
@@ -71,9 +73,10 @@ module.exports = class DiscordPlugin {
 
   public load(): void {
     this.themeAssignments = BdApi.loadData(import.meta.env.VITE_PLUGIN_CODE, 'themeAssignments') ?? {};
-    this.guilds.forEach((guild: Guild) => {
-      if (this.themeAssignments[guild.id] === undefined) {
-        this.themeAssignments[guild.id] = 'Default';
+
+    this.guilds.forEach(({ id: guildId }: Guild) => {
+      if (this.themeAssignments[guildId] === undefined) {
+        this.themeAssignments[guildId] = 'Default';
       }
     });
   }
