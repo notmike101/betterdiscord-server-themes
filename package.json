@@ -8,15 +8,8 @@
     "watch": "node ./scripts/build.mjs --watch",
     "install-plugin": "node --experimental-json-modules ./scripts/install.mjs"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https:/github.com/notmike101/betterdiscord-server-themes.git"
-  },
-  "author":{
-    "name": "Mike Orozco",
-    "email": "me@mikeorozco.dev",
-    "url": "https://mikeorozco.dev"
-  },
+  "repository": "github:notmike101/betterdiscord-server-themes",
+  "author": "Mike Orozco (https://mikeorozco.dev)",
   "license": "LICENSE.txt",
   "bugs": {
     "url": "https://github.com/notmike101/betterdiscord-server-themes/issues"
