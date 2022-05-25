@@ -1,4 +1,22 @@
-export interface Guild {
+declare module '*.scss';
+declare module 'betterdiscord/bdapi';
+
+declare const PACKAGE_VERSION: string;
+declare const PACKAGE_DESCRIPTION: string;
+declare const BETTERDISCORD_UPDATEURL: string;
+
+interface SupportPanelProps {
+  onChangeCallback?: any;
+  themeAssignments: ThemeAssignments;
+  themes: string[];
+  guilds: Guild[];
+}
+
+interface ThemeAssignments {
+  [key: string]: string;
+}
+
+interface Guild {
   afkChannelId?: string | null;
   afkTimeout?: number;
   applicationCommandCounts?: {

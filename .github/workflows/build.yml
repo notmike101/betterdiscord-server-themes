@@ -11,21 +11,24 @@ jobs:
     name: Build and push
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           persist-credentials: false
           fetch-depth: 0
 
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
       - name: Install dependencies
         run: npm ci
 
+      - name: Update google fonts
+        run: npm run update-fonts
+
       - name: Build
         run: npm run build
-
-      - name: Rename plugin file
-        run: |
-          mv ./dist/serverthemes.plugin.cjs.js ./dist/serverthemes.plugin.js
-          rm -rf ./dist/style.css
 
       - name: Push changes
         uses: s0/git-publish-subdir-action@develop

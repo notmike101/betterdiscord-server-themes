@@ -1,18 +1,12 @@
-import { Theme, BdApi as BdApiNamespace } from './bdapi';
-import { Guild } from './GuildInterface';
-import SettingsPanel from './SettingsPanel';
+import { React, getData, setData, injectCSS, clearCSS, Themes } from 'betterdiscord/bdapi';
+import { Updater } from 'betterdiscord-plugin-updater';
+import { SettingsPanel } from './SettingsPanel';
 
-const BdApi: typeof BdApiNamespace = (window as any).BdApi;
-const React = BdApi.React;
+class Plugin {  
+  private updater: Updater;
+  private themeAssignments: ThemeAssignments;
 
-module.exports = class DiscordPlugin {
-  protected themeAssignments: { [guildId: string]: string };
-
-  constructor() {
-    this.themeAssignments = {};
-  }
-
-  get guildId(): string {
+  get currentGuildId(): string {
     const history = BdApi.findModuleByProps('getHistory').getHistory();
     let guildId: string = history.location.pathname.split('/').filter(Boolean)[1];
 
@@ -21,14 +15,6 @@ module.exports = class DiscordPlugin {
     }
 
     return guildId;
-  }
-
-  get themes(): string[] {
-    const themes: string[] = BdApi.Themes.getAll().map(({ id: themeId }: Theme) => themeId);
-
-    themes.unshift('Default');
-
-    return themes;
   }
 
   get guilds(): Guild[] {
@@ -43,36 +29,17 @@ module.exports = class DiscordPlugin {
     return guilds;
   }
 
-  protected loadServerTheme(guildId: string | null): void {
-    const themeName: string = this.themeAssignments[guildId ?? 'Default'];
+  get themes(): string[] {
+    const themes: string[] = Themes.getAll().map(({ id: themeId }) => themeId);
 
-    this.themes.forEach((theme: string) => {
-      BdApi.Themes[theme === themeName ? 'enable' : 'disable'](theme);
-    });
+    themes.unshift('Default');
+
+    return themes;
   }
-
-  protected updateSettings(guildId: string, event: any): void {
-    this.themeAssignments[guildId] = event.target.value;
-
-    BdApi.setData(import.meta.env.VITE_PLUGIN_CODE, 'themeAssignments', this.themeAssignments);
-    
-    if (this.guildId === guildId) {
-      this.loadServerTheme(guildId);
-    }
-  }
-
-  public getName(): string {
-    return import.meta.env.VITE_PLUGIN_NAME
-  }
-
-  public onSwitch(): void {
-    this.loadServerTheme(this.guildId);
-  }
-
-  public start(): void {}
 
   public load(): void {
-    this.themeAssignments = BdApi.loadData(import.meta.env.VITE_PLUGIN_CODE, 'themeAssignments') ?? {};
+    this.updater = new Updater(BETTERDISCORD_UPDATEURL, PACKAGE_VERSION);
+    this.themeAssignments = getData('serverthemes', 'themeAssignments') ?? {};
 
     this.guilds.forEach(({ id: guildId }: Guild) => {
       if (this.themeAssignments[guildId] === undefined) {
@@ -81,14 +48,52 @@ module.exports = class DiscordPlugin {
     });
   }
 
+  public start(): void {
+    this.update();
+  }
+
   public stop(): void {}
 
-  public getSettingsPanel(): any {
-    return React.createElement(SettingsPanel, {
-      onChange: this.updateSettings.bind(this),
-      themeAssignments: this.themeAssignments,
-      guilds: this.guilds,
-      themes: this.themes
-    }, null);
+  public onSwitch(): void {
+    this.loadServerTheme(this.currentGuildId);
+  }
+
+  public getSettingsPanel(): JSX.Element {
+    return <SettingsPanel
+      onChangeCallback={this.settingsPanelThemeChangeHandler.bind(this)}
+      themeAssignments={this.themeAssignments}
+      themes={this.themes}
+      guilds={this.guilds}
+    />;
+  }
+
+  private loadServerTheme(guildId: string | null): void {
+    const themeName: string = this.themeAssignments[guildId ?? 'Default'];
+
+    this.themes.forEach((theme: string) => {
+      Themes[theme === themeName ? 'enable' : 'disable'](theme);
+    });
+  }
+
+  private log(...message: string[]): void {
+    console.log(`%c[ServerThemes]%c (${PACKAGE_VERSION})%c ${message.join(' ')}`, 'color: lightblue;', 'color: gray', 'color: white');
+  }
+
+  private settingsPanelThemeChangeHandler(guildId, themeId) {
+    this.themeAssignments[guildId] = themeId;
+
+    setData('themeAssignments', this.themeAssignments);
+
+    this.loadServerTheme(guildId);
+  }
+
+  private async update(): Promise<void> {
+    const isUpdateAvailable: boolean = await this.updater.isUpdateAvailable();
+
+    if (isUpdateAvailable) {
+      this.updater.showUpdateBanner();
+    }
   }
 }
+
+export default Plugin;
