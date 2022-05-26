@@ -1,6 +1,6 @@
 /**
 
- * @version 3.0.0
+ * @version 3.0.1
  * @source https://github.com/notmike101/betterdiscord-server-themes
  * @website https://mikeorozco.dev
  * @author DeNial
@@ -2283,25 +2283,16 @@ var require_semver2 = __commonJS({
   }
 });
 var import_semver = __toESM(require_semver2());
-var Updater = class {
-  updatePath;
-  currentVersion;
-  updateNotice;
-  storedNoticeContainer;
-  remotePluginInfo;
-  constructor(updatePath, currentVersion) {
-    this.updatePath = updatePath;
-    this.currentVersion = currentVersion;
-    this.remotePluginInfo = {};
-    this.createUpdateNotice();
-  }
-  get noticeContainer() {
-    if (!this.storedNoticeContainer) {
-      const existingNoticeContainer = document.querySelector("#plugin-updater-notice-container");
-      if (!existingNoticeContainer) {
-        const noticeContainer = document.createElement("div");
-        noticeContainer.id = "plugin-updater-notice-container";
-        noticeContainer.style.cssText = `
+var Banners = class {
+  bannerContainer;
+  banners;
+  constructor() {
+    this.banners = [];
+    const existingBannerContainer = document.querySelector("#plugin-banner-container");
+    if (!existingBannerContainer) {
+      const bannerContainer = document.createElement("div");
+      this.bannerContainer = bannerContainer;
+      this.bannerContainer.style.cssText = `
           display: flex;
           flex-direction: column;
           position: relative;
@@ -2309,60 +2300,81 @@ var Updater = class {
           align-items: center;
           justify-content: center;
         `;
-        this.storedNoticeContainer = noticeContainer;
-        document.querySelector('#app-mount > div[class^="app"] > div[class^="app"]').prepend(noticeContainer);
-      } else {
-        this.storedNoticeContainer = existingNoticeContainer;
-      }
+      this.bannerContainer.id = "plugin-banner-container";
+      document.querySelector('#app-mount > div[class^="app"] > div[class^="app"]').prepend(this.bannerContainer);
+    } else {
+      this.bannerContainer = existingBannerContainer;
     }
-    return this.storedNoticeContainer;
   }
-  log(...message) {
-    console.log(`%c[PluginUpdater]%c (${"1.1.3"})%c ${message.join(" ")}`, "color: lightblue;", "color: gray", "color: white");
-  }
-  dismissNotice() {
-    this.updateNotice.remove();
-  }
-  createUpdateNotice() {
-    const notice = document.createElement("div");
-    const noticeText = document.createElement("span");
-    const noticeApprove = document.createElement("button");
-    const noticeRefuse = document.createElement("button");
-    notice.classList.add("plugin-updater-update-notice");
-    notice.style.cssText = `
-      display: none;
+  createBanner(content, options) {
+    const banner = document.createElement("div");
+    const bannerText = document.createElement("span");
+    const bannerApprove = document.createElement("button");
+    const bannerDismiss = document.createElement("button");
+    const bannerIndex = this.banners.length;
+    banner.style.cssText = `
+      display: flex;
       flex: 1;
-      background-color: var(--info-help-background);
-      color: var(--info-help-text);
+      background-color: ${options.backgroundColor ?? "var(--info-help-background)"};
+      color: ${options.fontColor ?? "var(--info-help-text)"};
       padding: 6px 0;
       font-size: 12px;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       width: 100%;
-      border-bottom: 1px solid var(--info-help-background);
       margin: 0 15px;
     `;
-    noticeApprove.style.cssText = `
-      color: #ffffff;
-      background-color: var(--button-positive-background);
-      border: 0;
+    bannerApprove.style.cssText = `
+      color: ${options.acceptButtonFontColor ?? "#ffffff"};
+      background-color: ${options.acceptButtonBackgroundColor ?? "var(--button-positive-background)"};
+      border: 1px solid ${options.acceptButtonBorderColor ?? "var(--button-positive-border)"};
       outline: none;
       margin: 0 15px;
     `;
-    noticeRefuse.style.cssText = `
-      color: #ffffff;
-      background-color: var(--button-danger-background);
-      border: 0;
+    bannerDismiss.style.cssText = `
+      color: ${options.dismissButtonFontColor ?? "#ffffff"};
+      background-color: ${options.dismissButtonBackgroundColor ?? "var(--button-danger-background)"};
+      border: 1px solid ${options.dismissButtonBorderColor ?? "var(--button-danger-border)"};
       outline: none;
     `;
-    noticeApprove.textContent = "Update";
-    noticeRefuse.textContent = "Ignore";
-    noticeApprove.addEventListener("pointerup", this.installUpdate.bind(this));
-    noticeRefuse.addEventListener("pointerup", this.dismissNotice.bind(this));
-    notice.append(noticeText, noticeApprove, noticeRefuse);
-    this.updateNotice = notice;
-    this.noticeContainer.append(this.updateNotice);
+    bannerApprove.textContent = options.acceptButtonString ?? "Accept";
+    bannerDismiss.textContent = options.dismissButtonString ?? "Dismiss";
+    bannerText.textContent = content;
+    bannerApprove.addEventListener("pointerup", () => {
+      this.dismissBanner(bannerIndex);
+      if (options.acceptCallback) {
+        options.acceptCallback();
+      }
+    });
+    bannerDismiss.addEventListener("pointerup", () => {
+      this.dismissBanner(bannerIndex);
+      if (options.dismissCallback) {
+        options.dismissCallback();
+      }
+    });
+    banner.append(bannerText, bannerApprove, bannerDismiss);
+    this.bannerContainer.append(banner);
+    this.banners.push(banner);
+    return bannerIndex;
+  }
+  dismissBanner(bannerIndex) {
+    this.banners[bannerIndex].remove();
+  }
+};
+var Updater = class {
+  updatePath;
+  currentVersion;
+  remotePluginInfo;
+  banners;
+  constructor(updatePath, currentVersion) {
+    this.updatePath = updatePath;
+    this.currentVersion = currentVersion;
+    this.remotePluginInfo = {};
+    this.banners = new Banners();
+  }
+  log(...message) {
+    console.log(`%c[PluginUpdater]%c (${"1.1.4"})%c ${message.join(" ")}`, "color: lightblue;", "color: gray", "color: white");
   }
   async downloadPluginFile() {
     try {
@@ -2390,8 +2402,9 @@ var Updater = class {
     }
   }
   showUpdateBanner() {
-    this.updateNotice.querySelector("span").textContent = `Update available for ${this.remotePluginInfo.name}`;
-    this.updateNotice.style.display = "flex";
+    this.banners.createBanner(`Update available for ${this.remotePluginInfo.name}`, {
+      acceptCallback: this.installUpdate.bind(this)
+    });
   }
   async installUpdate() {
     try {
@@ -2405,7 +2418,6 @@ var Updater = class {
           resolve(true);
         });
       });
-      this.dismissNotice();
       (0, import_bdapi.showToast)(`${this.remotePluginInfo.name} updated`, { type: "success" });
       return true;
     } catch (err) {
@@ -2544,7 +2556,7 @@ var Plugin = class {
     return themes;
   }
   load() {
-    this.updater = new Updater("https://raw.githubusercontent.com/notmike101/betterdiscord-server-themes/release/serverthemes.plugin.js", "3.0.0");
+    this.updater = new Updater("https://raw.githubusercontent.com/notmike101/betterdiscord-server-themes/release/serverthemes.plugin.js", "3.0.1");
     this.themeAssignments = (0, import_bdapi3.getData)("serverthemes", "themeAssignments") ?? {};
     this.guilds.forEach(({ id: guildId }) => {
       if (this.themeAssignments[guildId] === void 0) {
@@ -2575,7 +2587,7 @@ var Plugin = class {
     });
   }
   log(...message) {
-    console.log(`%c[ServerThemes]%c (${"3.0.0"})%c ${message.join(" ")}`, "color: lightblue;", "color: gray", "color: white");
+    console.log(`%c[ServerThemes]%c (${"3.0.1"})%c ${message.join(" ")}`, "color: lightblue;", "color: gray", "color: white");
   }
   settingsPanelThemeChangeHandler(guildId, themeId) {
     this.themeAssignments[guildId] = themeId;
