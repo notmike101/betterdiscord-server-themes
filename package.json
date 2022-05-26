@@ -1,6 +1,6 @@
 {
   "name": "server-themes",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Allow users to use specific themes depending on what server they're currently viewing",
   "main": "src/main.tsx",
   "scripts": {
