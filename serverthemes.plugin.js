@@ -1,6 +1,6 @@
 /**
 
- * @version 3.0.1
+ * @version 3.1.0
  * @source https://github.com/notmike101/betterdiscord-server-themes
  * @website https://mikeorozco.dev
  * @author DeNial
@@ -2556,13 +2556,19 @@ var Plugin = class {
     return themes;
   }
   load() {
-    this.updater = new Updater("https://raw.githubusercontent.com/notmike101/betterdiscord-server-themes/release/serverthemes.plugin.js", "3.0.1");
+    this.updater = new Updater("https://raw.githubusercontent.com/notmike101/betterdiscord-server-themes/release/serverthemes.plugin.js", "3.1.0");
     this.themeAssignments = (0, import_bdapi3.getData)("serverthemes", "themeAssignments") ?? {};
     this.guilds.forEach(({ id: guildId }) => {
       if (this.themeAssignments[guildId] === void 0) {
-        this.themeAssignments[guildId] = "Default";
+        const activeThemes = import_bdapi3.Themes.getAll().filter((theme) => import_bdapi3.Themes.isEnabled(theme.id));
+        if (activeThemes.length > 0) {
+          this.themeAssignments[guildId] = activeThemes[0].id;
+        } else {
+          this.themeAssignments[guildId] = "Default";
+        }
       }
     });
+    (0, import_bdapi3.setData)("serverthemes", "themeAssignments", this.themeAssignments);
   }
   start() {
     this.update();
@@ -2587,7 +2593,7 @@ var Plugin = class {
     });
   }
   log(...message) {
-    console.log(`%c[ServerThemes]%c (${"3.0.1"})%c ${message.join(" ")}`, "color: lightblue;", "color: gray", "color: white");
+    console.log(`%c[ServerThemes]%c (${"3.1.0"})%c ${message.join(" ")}`, "color: lightblue;", "color: gray", "color: white");
   }
   settingsPanelThemeChangeHandler(guildId, themeId) {
     this.themeAssignments[guildId] = themeId;
