@@ -1,9 +1,9 @@
-name: Generate a build and push to release branch
+name: Generate a build and publish
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
 
 jobs:
   build:
@@ -34,3 +34,12 @@ jobs:
           BRANCH: release
           FOLDER: dist
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub release
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: false
+          automatic_release_tag: latest
+          files: |
+            dist/serverthemes.plugin.js
