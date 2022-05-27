@@ -30,7 +30,7 @@ class Plugin {
   }
 
   get themes(): string[] {
-    const themes: string[] = Themes.getAll().map(({ id: themeId }) => themeId);
+    const themes: string[] = Themes.getAll().map(({ id: themeId }: Theme) => themeId);
 
     themes.unshift('Default');
 
@@ -43,9 +43,17 @@ class Plugin {
 
     this.guilds.forEach(({ id: guildId }: Guild) => {
       if (this.themeAssignments[guildId] === undefined) {
-        this.themeAssignments[guildId] = 'Default';
+        const activeThemes = Themes.getAll().filter((theme: Theme) => Themes.isEnabled(theme.id));
+
+        if (activeThemes.length > 0) {
+          this.themeAssignments[guildId] = activeThemes[0].id;
+        } else {
+          this.themeAssignments[guildId] = 'Default';
+        }
       }
     });
+
+    setData('serverthemes', 'themeAssignments', this.themeAssignments);
   }
 
   public start(): void {

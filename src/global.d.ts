@@ -16,6 +16,22 @@ interface ThemeAssignments {
   [key: string]: string;
 }
 
+interface Theme {
+  added: number;
+  author: string;
+  css: string;
+  description: string;
+  donate?: string;
+  filename: string;
+  format: string;
+  id: string;
+  invite?: string;
+  modified: number;
+  name: string;
+  size: number;
+  version: string;
+}
+
 interface Guild {
   afkChannelId?: string | null;
   afkTimeout?: number;

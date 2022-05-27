@@ -34,7 +34,7 @@ export const SettingsPanel = (props: SupportPanelProps): JSX.Element => {
             <span className="server-name">{ guild.name }</span>
             <select
               className="theme-select"
-              onChange={(e) => {
+              onChange={(e): void => {
                 setThemeAssignments({
                   ...themeAssignments,
                   [guild.id]: e.target.value,
