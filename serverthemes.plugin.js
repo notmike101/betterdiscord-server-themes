@@ -1,6 +1,6 @@
 /**
 
- * @version 3.1.0
+ * @version 3.1.1
  * @source https://github.com/notmike101/betterdiscord-server-themes
  * @website https://mikeorozco.dev
  * @author DeNial
@@ -2286,9 +2286,9 @@ var import_semver = __toESM(require_semver2());
 var Banners = class {
   bannerContainer;
   banners;
-  constructor() {
+  constructor(bannerContainerId = "plugin-banner-container") {
     this.banners = [];
-    const existingBannerContainer = document.querySelector("#plugin-banner-container");
+    const existingBannerContainer = document.querySelector("#" + bannerContainerId);
     if (!existingBannerContainer) {
       const bannerContainer = document.createElement("div");
       this.bannerContainer = bannerContainer;
@@ -2300,7 +2300,7 @@ var Banners = class {
           align-items: center;
           justify-content: center;
         `;
-      this.bannerContainer.id = "plugin-banner-container";
+      this.bannerContainer.id = bannerContainerId;
       document.querySelector('#app-mount > div[class^="app"] > div[class^="app"]').prepend(this.bannerContainer);
     } else {
       this.bannerContainer = existingBannerContainer;
@@ -2359,7 +2359,9 @@ var Banners = class {
     return bannerIndex;
   }
   dismissBanner(bannerIndex) {
-    this.banners[bannerIndex].remove();
+    if (this.banners[bannerIndex]) {
+      this.banners[bannerIndex].remove();
+    }
   }
 };
 var Updater = class {
@@ -2374,7 +2376,7 @@ var Updater = class {
     this.banners = new Banners();
   }
   log(...message) {
-    console.log(`%c[PluginUpdater]%c (${"1.1.4"})%c ${message.join(" ")}`, "color: lightblue;", "color: gray", "color: white");
+    console.log(`%c[PluginUpdater]%c (${"1.1.5"})%c ${message.join(" ")}`, "color: lightblue;", "color: gray", "color: white");
   }
   async downloadPluginFile() {
     try {
@@ -2556,7 +2558,7 @@ var Plugin = class {
     return themes;
   }
   load() {
-    this.updater = new Updater("https://raw.githubusercontent.com/notmike101/betterdiscord-server-themes/release/serverthemes.plugin.js", "3.1.0");
+    this.updater = new Updater("https://raw.githubusercontent.com/notmike101/betterdiscord-server-themes/release/serverthemes.plugin.js", "3.1.1");
     this.themeAssignments = (0, import_bdapi3.getData)("serverthemes", "themeAssignments") ?? {};
     this.guilds.forEach(({ id: guildId }) => {
       if (this.themeAssignments[guildId] === void 0) {
@@ -2593,7 +2595,7 @@ var Plugin = class {
     });
   }
   log(...message) {
-    console.log(`%c[ServerThemes]%c (${"3.1.0"})%c ${message.join(" ")}`, "color: lightblue;", "color: gray", "color: white");
+    console.log(`%c[ServerThemes]%c (${"3.1.1"})%c ${message.join(" ")}`, "color: lightblue;", "color: gray", "color: white");
   }
   settingsPanelThemeChangeHandler(guildId, themeId) {
     this.themeAssignments[guildId] = themeId;
