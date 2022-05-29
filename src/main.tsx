@@ -1,4 +1,4 @@
-import { React, getData, setData, injectCSS, clearCSS, Themes } from 'betterdiscord/bdapi';
+import { React, getData, setData, Themes } from 'betterdiscord/bdapi';
 import { Updater } from 'betterdiscord-plugin-updater';
 import { SettingsPanel } from './SettingsPanel';
 
