@@ -1,5 +1,5 @@
-import { React, getData, setData, Themes } from 'betterdiscord/bdapi';
-import { Updater } from 'betterdiscord-plugin-updater';
+import BdAPI, { React, getData, setData, Themes } from 'betterdiscord/bdapi';
+import { Updater } from 'betterdiscord-plugin-libs';
 import { SettingsPanel } from './SettingsPanel';
 
 class Plugin {  
@@ -38,7 +38,12 @@ class Plugin {
   }
 
   public load(): void {
-    this.updater = new Updater(BETTERDISCORD_UPDATEURL, PACKAGE_VERSION);
+    this.updater = new Updater({
+      BdAPI,
+      currentVersion: PACKAGE_VERSION,
+      updatePath: BETTERDISCORD_UPDATEURL,
+      showToasts: true,
+    });
     this.themeAssignments = getData('serverthemes', 'themeAssignments') ?? {};
 
     this.guilds.forEach(({ id: guildId }: Guild) => {
@@ -81,10 +86,6 @@ class Plugin {
     this.themes.forEach((theme: string) => {
       Themes[theme === themeName ? 'enable' : 'disable'](theme);
     });
-  }
-
-  private log(...message: string[]): void {
-    console.log(`%c[ServerThemes]%c (${PACKAGE_VERSION})%c ${message.join(' ')}`, 'color: lightblue;', 'color: gray', 'color: white');
   }
 
   private settingsPanelThemeChangeHandler(guildId, themeId) {
