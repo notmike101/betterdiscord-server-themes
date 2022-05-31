@@ -1,9 +1,12 @@
-import BdAPI, { React, getData, setData, Themes } from 'betterdiscord/bdapi';
-import { Updater } from 'betterdiscord-plugin-libs';
+import { React, getData, setData, Themes, Plugins, showToast, findModuleByProps } from 'betterdiscord/bdapi';
+import { Updater, Banners } from 'betterdiscord-plugin-libs';
 import { SettingsPanel } from './SettingsPanel';
 
 class Plugin {  
   private updater: Updater;
+  private banners: Banners;
+  private updateBannerId: number;
+
   private themeAssignments: ThemeAssignments;
 
   get currentGuildId(): string {
@@ -38,12 +41,8 @@ class Plugin {
   }
 
   public load(): void {
-    this.updater = new Updater({
-      BdAPI,
-      currentVersion: PACKAGE_VERSION,
-      updatePath: BETTERDISCORD_UPDATEURL,
-      showToasts: true,
-    });
+    this.updater = this.updater ?? new Updater({ storagePath: Plugins.folder, currentVersion: PACKAGE_VERSION, updatePath: BETTERDISCORD_UPDATEURL });
+    this.banners = this.banners ?? new Banners(document.querySelector('.' + findModuleByProps('app', 'layers').app));
     this.themeAssignments = getData('serverthemes', 'themeAssignments') ?? {};
 
     this.guilds.forEach(({ id: guildId }: Guild) => {
@@ -63,9 +62,16 @@ class Plugin {
 
   public start(): void {
     this.update();
+    this.loadServerTheme(this.currentGuildId);
   }
 
-  public stop(): void {}
+  public stop(): void {
+    if (this.updateBannerId !== null) {
+      this.banners.dismissBanner(this.updateBannerId);
+    }
+
+    this.loadServerTheme(null);
+  }
 
   public onSwitch(): void {
     this.loadServerTheme(this.currentGuildId);
@@ -100,7 +106,17 @@ class Plugin {
     const isUpdateAvailable: boolean = await this.updater.isUpdateAvailable();
 
     if (isUpdateAvailable) {
-      this.updater.showUpdateBanner();
+      this.updateBannerId = this.banners.createBanner('Update available for ServerThemes', {
+        acceptCallback: async () => {
+          const updateSuccess = await this.updater.installUpdate();
+
+          if (updateSuccess) {
+            showToast('ServerThemes successfully updated', { type: 'success' });
+          } else {
+            showToast('Failed to update ServerThemes', { type: 'error' });
+          }
+        },
+      });
     }
   }
 }
