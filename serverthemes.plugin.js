@@ -1,6 +1,6 @@
 /**
 
- * @version 3.1.3
+ * @version 3.1.4
  * @source https://github.com/notmike101/betterdiscord-server-themes
  * @website https://mikeorozco.dev
  * @author DeNial
@@ -12,11 +12,9 @@
  * @authorId 142347724392497152
  */
 
-var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __export = (target, all) => {
   for (var name in all)
@@ -30,7 +28,6 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target, mod));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // src/main.tsx
@@ -39,14 +36,14 @@ __export(main_exports, {
   default: () => main_default
 });
 module.exports = __toCommonJS(main_exports);
-var import_bdapi2 = __toESM(require("betterdiscord/bdapi"));
+var import_bdapi2 = require("betterdiscord/bdapi");
 
 // node_modules/betterdiscord-plugin-libs/dist/index.esm.js
-var __create2 = Object.create;
+var __create = Object.create;
 var __defProp2 = Object.defineProperty;
 var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames2 = Object.getOwnPropertyNames;
-var __getProtoOf2 = Object.getPrototypeOf;
+var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp2 = Object.prototype.hasOwnProperty;
 var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
   get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
@@ -66,7 +63,7 @@ var __copyProps2 = (to, from, except, desc) => {
   }
   return to;
 };
-var __toESM2 = (mod, isNodeMode, target) => (target = mod != null ? __create2(__getProtoOf2(mod)) : {}, __copyProps2(isNodeMode || !mod || !mod.__esModule ? __defProp2(target, "default", { value: mod, enumerable: true }) : target, mod));
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps2(isNodeMode || !mod || !mod.__esModule ? __defProp2(target, "default", { value: mod, enumerable: true }) : target, mod));
 var require_debug = __commonJS({
   "node_modules/semver/internal/debug.js"(exports, module2) {
     var debug = typeof process === "object" && process.env && process.env.NODE_DEBUG && /\bsemver\b/i.test(process.env.NODE_DEBUG) ? (...args) => console.error("SEMVER", ...args) : () => {
@@ -1089,9 +1086,9 @@ var update = TWEEN.update.bind(TWEEN);
 var Banners = class {
   bannerContainer;
   banners;
-  constructor(bannerContainerId = "plugin-banner-container") {
+  constructor(targetContainer) {
     this.banners = [];
-    const existingBannerContainer = document.querySelector("#" + bannerContainerId);
+    const existingBannerContainer = document.querySelector("#plugin-banner-container-c81mc1");
     if (!existingBannerContainer) {
       const bannerContainer = document.createElement("div");
       this.bannerContainer = bannerContainer;
@@ -1103,8 +1100,8 @@ var Banners = class {
           align-items: center;
           justify-content: center;
         `;
-      this.bannerContainer.id = bannerContainerId;
-      document.querySelector('#app-mount > div[class^="app"] > div[class^="app"]').prepend(this.bannerContainer);
+      this.bannerContainer.id = "plugin-banner-container-c81mc1";
+      targetContainer.prepend(this.bannerContainer);
     } else {
       this.bannerContainer = existingBannerContainer;
     }
@@ -1189,22 +1186,18 @@ var Logger = class {
     console.info(`%c[${this.logPrefix}] %c${messages.join(" ")}`, `color: ${this.logPrefixColor};`, `color: ${this.logColor}`);
   }
 };
-var import_gt = __toESM2(require_gt());
+var import_gt = __toESM(require_gt());
 var Updater = class {
   updatePath;
+  storagePath;
   currentVersion;
   remotePluginInfo;
-  banners;
   logger;
-  showToasts;
-  BdAPI;
   constructor(options) {
     this.updatePath = options.updatePath;
+    this.storagePath = options.storagePath;
     this.currentVersion = options.currentVersion;
     this.remotePluginInfo = {};
-    this.showToasts = options.showToasts ?? false;
-    this.BdAPI = options.BdAPI;
-    this.banners = new Banners();
     this.logger = new Logger("PluginUpdater", "lightblue", "white");
   }
   async downloadPluginFile() {
@@ -1232,31 +1225,21 @@ var Updater = class {
       return false;
     }
   }
-  showUpdateBanner() {
-    this.banners.createBanner(`Update available for ${this.remotePluginInfo.name}`, {
-      acceptCallback: this.installUpdate.bind(this)
-    });
-  }
   async installUpdate() {
     try {
       const fs = __require("fs");
       if (!fs)
         throw new Error("Unable to load `fs` module");
       await new Promise((resolve, reject) => {
-        fs.writeFile(`${this.BdAPI.Plugins.folder}/${this.remotePluginInfo.fileName}`, this.remotePluginInfo.content, (err) => {
+        fs.writeFile(`${this.storagePath}/${this.remotePluginInfo.fileName}`, this.remotePluginInfo.content, (err) => {
           if (err)
             reject(err);
           resolve(true);
         });
       });
-      if (this.showToasts) {
-        this.BdAPI.showToast(`${this.remotePluginInfo.name} updated`, { type: "success" });
-      }
       return true;
     } catch (err) {
-      if (this.showToasts) {
-        this.BdAPI.showToast(`Failed to download and install update for ${this.remotePluginInfo.name}`, { type: "error" });
-      }
+      this.logger.log("Failed to install update", err.message);
       return false;
     }
   }
@@ -1364,6 +1347,8 @@ var SettingsPanel = (props) => {
 // src/main.tsx
 var Plugin = class {
   updater;
+  banners;
+  updateBannerId;
   themeAssignments;
   get currentGuildId() {
     const history = BdApi.findModuleByProps("getHistory").getHistory();
@@ -1388,12 +1373,8 @@ var Plugin = class {
     return themes;
   }
   load() {
-    this.updater = new Updater({
-      BdAPI: import_bdapi2.default,
-      currentVersion: "3.1.3",
-      updatePath: "https://raw.githubusercontent.com/notmike101/betterdiscord-server-themes/release/serverthemes.plugin.js",
-      showToasts: true
-    });
+    this.updater = this.updater ?? new Updater({ storagePath: import_bdapi2.Plugins.folder, currentVersion: "3.1.4", updatePath: "https://raw.githubusercontent.com/notmike101/betterdiscord-server-themes/release/serverthemes.plugin.js" });
+    this.banners = this.banners ?? new Banners(document.querySelector("." + (0, import_bdapi2.findModuleByProps)("app", "layers").app));
     this.themeAssignments = (0, import_bdapi2.getData)("serverthemes", "themeAssignments") ?? {};
     this.guilds.forEach(({ id: guildId }) => {
       if (this.themeAssignments[guildId] === void 0) {
@@ -1409,8 +1390,13 @@ var Plugin = class {
   }
   start() {
     this.update();
+    this.loadServerTheme(this.currentGuildId);
   }
   stop() {
+    if (this.updateBannerId !== null) {
+      this.banners.dismissBanner(this.updateBannerId);
+    }
+    this.loadServerTheme(null);
   }
   onSwitch() {
     this.loadServerTheme(this.currentGuildId);
@@ -1437,7 +1423,16 @@ var Plugin = class {
   async update() {
     const isUpdateAvailable = await this.updater.isUpdateAvailable();
     if (isUpdateAvailable) {
-      this.updater.showUpdateBanner();
+      this.updateBannerId = this.banners.createBanner("Update available for ServerThemes", {
+        acceptCallback: async () => {
+          const updateSuccess = await this.updater.installUpdate();
+          if (updateSuccess) {
+            (0, import_bdapi2.showToast)("ServerThemes successfully updated", { type: "success" });
+          } else {
+            (0, import_bdapi2.showToast)("Failed to update ServerThemes", { type: "error" });
+          }
+        }
+      });
     }
   }
 };
