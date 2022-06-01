@@ -1,15 +1,16 @@
-import { React, injectCSS, clearCSS } from 'betterdiscord/bdapi';
+import { React, injectCSS, clearCSS, getData } from 'betterdiscord/bdapi';
 import settingStyles from './styles.scss';
 
 export const SettingsPanel = (props: SupportPanelProps): JSX.Element => {
-  const guilds: Guild[] = props.guilds;
-  const themes: string[] = props.themes;
-  const onChangeCallback: any = props.onChangeCallback;
+  const guilds = props.guilds;
+  const themes = props.themes;
   const [ themeAssignments , setThemeAssignments ] = React.useState(props.themeAssignments);
   const isMounted = React.useRef(false);
+  const onChangeCallback: any = props.onChangeCallback;
 
   const mountHandler = (): void => {
     isMounted.current = true;
+    setThemeAssignments(getData('serverthemes', 'themeAssignments'));
     injectCSS('betterdiscord-serverthemes-settings-panel', settingStyles);
   };
 
@@ -22,7 +23,7 @@ export const SettingsPanel = (props: SupportPanelProps): JSX.Element => {
     if (isMounted.current === false) {
       mountHandler();
     }
-
+    
     return unmountHandler;
   }, []);
 
@@ -40,7 +41,7 @@ export const SettingsPanel = (props: SupportPanelProps): JSX.Element => {
                   [guild.id]: e.target.value,
                 });
 
-                if (onChangeCallback) onChangeCallback(guild.name, e.target.value);
+                if (onChangeCallback) onChangeCallback(guild.id, e.target.value);
               }}
               value={themeAssignments[guild.id] ?? 'Default'}
             >
