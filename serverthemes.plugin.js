@@ -1,6 +1,6 @@
 /**
 
- * @version 3.1.4
+ * @version 3.1.5
  * @source https://github.com/notmike101/betterdiscord-server-themes
  * @website https://mikeorozco.dev
  * @author DeNial
@@ -1301,11 +1301,12 @@ var styles_default = `
 var SettingsPanel = (props) => {
   const guilds = props.guilds;
   const themes = props.themes;
-  const onChangeCallback = props.onChangeCallback;
   const [themeAssignments, setThemeAssignments] = import_bdapi.React.useState(props.themeAssignments);
   const isMounted = import_bdapi.React.useRef(false);
+  const onChangeCallback = props.onChangeCallback;
   const mountHandler = () => {
     isMounted.current = true;
+    setThemeAssignments((0, import_bdapi.getData)("serverthemes", "themeAssignments"));
     (0, import_bdapi.injectCSS)("betterdiscord-serverthemes-settings-panel", styles_default);
   };
   const unmountHandler = () => {
@@ -1335,7 +1336,7 @@ var SettingsPanel = (props) => {
         [guild.id]: e.target.value
       });
       if (onChangeCallback)
-        onChangeCallback(guild.name, e.target.value);
+        onChangeCallback(guild.id, e.target.value);
     },
     value: themeAssignments[guild.id] ?? "Default"
   }, themes.map((theme, index2) => /* @__PURE__ */ import_bdapi.React.createElement("option", {
@@ -1349,22 +1350,20 @@ var Plugin = class {
   updater;
   banners;
   updateBannerId;
+  modules;
   themeAssignments;
   get currentGuildId() {
-    const history = BdApi.findModuleByProps("getHistory").getHistory();
-    let guildId = history.location.pathname.split("/").filter(Boolean)[1];
-    if (!guildId || guildId === "@me") {
-      guildId = "noguild";
-    }
-    return guildId;
+    return this.modules.selectedGuildStore.getGuildId();
   }
   get guilds() {
-    const guilds = Object.values(BdApi.findModuleByProps("getGuild").getGuilds());
-    const noServer = {
+    const guilds = Object.values(this.modules.guildStore.getGuilds()).map((guild) => ({
+      id: guild.id,
+      name: guild.name
+    }));
+    guilds.unshift({
       id: "noguild",
-      name: "No guild"
-    };
-    guilds.unshift(noServer);
+      name: "No Guild"
+    });
     return guilds;
   }
   get themes() {
@@ -1372,20 +1371,55 @@ var Plugin = class {
     themes.unshift("Default");
     return themes;
   }
+  loadModules() {
+    this.modules = {
+      selectedGuildStore: (0, import_bdapi2.findModuleByProps)("getLastSelectedGuildId"),
+      guildStore: (0, import_bdapi2.findModuleByProps)("getGuilds")
+    };
+  }
+  loadServerTheme(guildId) {
+    const themeName = this.themeAssignments[guildId ?? "Default"];
+    for (const theme of this.themes) {
+      import_bdapi2.Themes[theme === themeName ? "enable" : "disable"](theme);
+    }
+  }
+  settingsPanelThemeChangeHandler(guildId, themeId) {
+    this.themeAssignments[guildId] = themeId;
+    (0, import_bdapi2.setData)("themeAssignments", this.themeAssignments);
+    if (this.currentGuildId === guildId) {
+      this.loadServerTheme(guildId);
+    }
+  }
+  async update() {
+    const isUpdateAvailable = await this.updater.isUpdateAvailable();
+    if (isUpdateAvailable) {
+      this.updateBannerId = this.banners.createBanner("Update available for ServerThemes", {
+        acceptCallback: async () => {
+          const updateSuccess = await this.updater.installUpdate();
+          if (updateSuccess) {
+            (0, import_bdapi2.showToast)("ServerThemes successfully updated", { type: "success" });
+          } else {
+            (0, import_bdapi2.showToast)("Failed to update ServerThemes", { type: "error" });
+          }
+        }
+      });
+    }
+  }
   load() {
-    this.updater = this.updater ?? new Updater({ storagePath: import_bdapi2.Plugins.folder, currentVersion: "3.1.4", updatePath: "https://raw.githubusercontent.com/notmike101/betterdiscord-server-themes/release/serverthemes.plugin.js" });
+    this.updater = this.updater ?? new Updater({ storagePath: import_bdapi2.Plugins.folder, currentVersion: "3.1.5", updatePath: "https://raw.githubusercontent.com/notmike101/betterdiscord-server-themes/release/serverthemes.plugin.js" });
     this.banners = this.banners ?? new Banners(document.querySelector("." + (0, import_bdapi2.findModuleByProps)("app", "layers").app));
     this.themeAssignments = (0, import_bdapi2.getData)("serverthemes", "themeAssignments") ?? {};
-    this.guilds.forEach(({ id: guildId }) => {
-      if (this.themeAssignments[guildId] === void 0) {
+    this.loadModules();
+    for (const guild of this.guilds) {
+      if (this.themeAssignments[guild.id] === void 0) {
         const activeThemes = import_bdapi2.Themes.getAll().filter((theme) => import_bdapi2.Themes.isEnabled(theme.id));
         if (activeThemes.length > 0) {
-          this.themeAssignments[guildId] = activeThemes[0].id;
+          this.themeAssignments[guild.id] = activeThemes[0].id;
         } else {
-          this.themeAssignments[guildId] = "Default";
+          this.themeAssignments[guild.id] = "Default";
         }
       }
-    });
+    }
     (0, import_bdapi2.setData)("serverthemes", "themeAssignments", this.themeAssignments);
   }
   start() {
@@ -1408,32 +1442,6 @@ var Plugin = class {
       themes: this.themes,
       guilds: this.guilds
     });
-  }
-  loadServerTheme(guildId) {
-    const themeName = this.themeAssignments[guildId ?? "Default"];
-    this.themes.forEach((theme) => {
-      import_bdapi2.Themes[theme === themeName ? "enable" : "disable"](theme);
-    });
-  }
-  settingsPanelThemeChangeHandler(guildId, themeId) {
-    this.themeAssignments[guildId] = themeId;
-    (0, import_bdapi2.setData)("themeAssignments", this.themeAssignments);
-    this.loadServerTheme(guildId);
-  }
-  async update() {
-    const isUpdateAvailable = await this.updater.isUpdateAvailable();
-    if (isUpdateAvailable) {
-      this.updateBannerId = this.banners.createBanner("Update available for ServerThemes", {
-        acceptCallback: async () => {
-          const updateSuccess = await this.updater.installUpdate();
-          if (updateSuccess) {
-            (0, import_bdapi2.showToast)("ServerThemes successfully updated", { type: "success" });
-          } else {
-            (0, import_bdapi2.showToast)("Failed to update ServerThemes", { type: "error" });
-          }
-        }
-      });
-    }
   }
 };
 var main_default = Plugin;
