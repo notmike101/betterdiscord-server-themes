@@ -1,5 +1,5 @@
 import { React, getData, setData, Themes, Plugins, showToast, findModuleByProps } from 'betterdiscord/bdapi';
-import { Updater, Banners } from 'betterdiscord-plugin-libs';
+import { Updater, Banners, DiscordModules } from 'betterdiscord-plugin-libs';
 import { SettingsPanel } from './SettingsPanel';
 
 class Plugin {  
@@ -38,8 +38,9 @@ class Plugin {
 
   private loadModules(): void {
     this.modules = {
-      selectedGuildStore: findModuleByProps('getLastSelectedGuildId'),
-      guildStore: findModuleByProps('getGuilds'),
+      selectedGuildStore: DiscordModules.selectedGuildStore,
+      guildStore: DiscordModules.guildStore,
+      app: DiscordModules.app,
     };
   }
 
@@ -80,11 +81,11 @@ class Plugin {
   }
 
   public load(): void {
-    this.updater = this.updater ?? new Updater({ storagePath: Plugins.folder, currentVersion: PACKAGE_VERSION, updatePath: BETTERDISCORD_UPDATEURL });
-    this.banners = this.banners ?? new Banners(document.querySelector('.' + findModuleByProps('app', 'layers').app));
-    this.themeAssignments = getData('serverthemes', 'themeAssignments') ?? {};
-
     this.loadModules();
+
+    this.updater = this.updater ?? new Updater({ storagePath: Plugins.folder, currentVersion: PACKAGE_VERSION, updatePath: BETTERDISCORD_UPDATEURL });
+    this.banners = this.banners ?? new Banners(document.querySelector('.' + this.modules.app.app));
+    this.themeAssignments = getData('serverthemes', 'themeAssignments') ?? {};
 
     for (const guild of this.guilds) {
       if (this.themeAssignments[guild.id] === undefined) {
