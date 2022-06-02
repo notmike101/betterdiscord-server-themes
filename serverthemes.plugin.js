@@ -1,6 +1,6 @@
 /**
 
- * @version 3.1.5
+ * @version 3.1.8
  * @source https://github.com/notmike101/betterdiscord-server-themes
  * @website https://mikeorozco.dev
  * @author DeNial
@@ -36,9 +36,10 @@ __export(main_exports, {
   default: () => main_default
 });
 module.exports = __toCommonJS(main_exports);
-var import_bdapi2 = require("betterdiscord/bdapi");
+var import_bdapi3 = require("betterdiscord/bdapi");
 
 // node_modules/betterdiscord-plugin-libs/dist/index.esm.js
+var import_bdapi = require("betterdiscord/bdapi");
 var __create = Object.create;
 var __defProp2 = Object.defineProperty;
 var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -1168,7 +1169,7 @@ var Logger = class {
   logPrefix;
   logPrefixColor;
   logColor;
-  constructor(logPrefix, logPrefixColor, logColor) {
+  constructor(logPrefix, logPrefixColor = "lightblue", logColor = "white") {
     this.logPrefix = logPrefix;
     this.logPrefixColor = logPrefixColor;
     this.logColor = logColor;
@@ -1244,9 +1245,17 @@ var Updater = class {
     }
   }
 };
+var selectedGuildStore = (0, import_bdapi.findModuleByProps)("getLastSelectedGuildId");
+var guildStore = (0, import_bdapi.findModuleByProps)("getGuilds");
+var app = (0, import_bdapi.findModuleByProps)("app", "layers");
+var DiscordModules = Object.freeze({
+  selectedGuildStore,
+  guildStore,
+  app
+});
 
 // src/SettingsPanel/index.tsx
-var import_bdapi = require("betterdiscord/bdapi");
+var import_bdapi2 = require("betterdiscord/bdapi");
 
 // src/SettingsPanel/styles.scss
 var styles_default = `
@@ -1301,34 +1310,34 @@ var styles_default = `
 var SettingsPanel = (props) => {
   const guilds = props.guilds;
   const themes = props.themes;
-  const [themeAssignments, setThemeAssignments] = import_bdapi.React.useState(props.themeAssignments);
-  const isMounted = import_bdapi.React.useRef(false);
+  const [themeAssignments, setThemeAssignments] = import_bdapi2.React.useState(props.themeAssignments);
+  const isMounted = import_bdapi2.React.useRef(false);
   const onChangeCallback = props.onChangeCallback;
   const mountHandler = () => {
     isMounted.current = true;
-    setThemeAssignments((0, import_bdapi.getData)("serverthemes", "themeAssignments"));
-    (0, import_bdapi.injectCSS)("betterdiscord-serverthemes-settings-panel", styles_default);
+    setThemeAssignments((0, import_bdapi2.getData)("serverthemes", "themeAssignments"));
+    (0, import_bdapi2.injectCSS)("betterdiscord-serverthemes-settings-panel", styles_default);
   };
   const unmountHandler = () => {
     isMounted.current = false;
-    (0, import_bdapi.clearCSS)("betterdiscord-serverthemes-settings-panel");
+    (0, import_bdapi2.clearCSS)("betterdiscord-serverthemes-settings-panel");
   };
-  import_bdapi.React.useEffect(() => {
+  import_bdapi2.React.useEffect(() => {
     if (isMounted.current === false) {
       mountHandler();
     }
     return unmountHandler;
   }, []);
-  return /* @__PURE__ */ import_bdapi.React.createElement("div", {
+  return /* @__PURE__ */ import_bdapi2.React.createElement("div", {
     className: "settings-panel"
-  }, /* @__PURE__ */ import_bdapi.React.createElement("div", {
+  }, /* @__PURE__ */ import_bdapi2.React.createElement("div", {
     className: "settings-panel-body"
-  }, guilds.map((guild, index) => /* @__PURE__ */ import_bdapi.React.createElement("div", {
+  }, guilds.map((guild, index) => /* @__PURE__ */ import_bdapi2.React.createElement("div", {
     key: index,
     className: "settings-panel-row"
-  }, /* @__PURE__ */ import_bdapi.React.createElement("span", {
+  }, /* @__PURE__ */ import_bdapi2.React.createElement("span", {
     className: "server-name"
-  }, guild.name), /* @__PURE__ */ import_bdapi.React.createElement("select", {
+  }, guild.name), /* @__PURE__ */ import_bdapi2.React.createElement("select", {
     className: "theme-select",
     onChange: (e) => {
       setThemeAssignments({
@@ -1339,7 +1348,7 @@ var SettingsPanel = (props) => {
         onChangeCallback(guild.id, e.target.value);
     },
     value: themeAssignments[guild.id] ?? "Default"
-  }, themes.map((theme, index2) => /* @__PURE__ */ import_bdapi.React.createElement("option", {
+  }, themes.map((theme, index2) => /* @__PURE__ */ import_bdapi2.React.createElement("option", {
     key: index2,
     value: theme
   }, theme)))))));
@@ -1349,6 +1358,7 @@ var SettingsPanel = (props) => {
 var Plugin = class {
   updater;
   banners;
+  logger;
   updateBannerId;
   modules;
   themeAssignments;
@@ -1367,25 +1377,27 @@ var Plugin = class {
     return guilds;
   }
   get themes() {
-    const themes = import_bdapi2.Themes.getAll().map(({ id: themeId }) => themeId);
+    const themes = import_bdapi3.Themes.getAll().map(({ id: themeId }) => themeId);
     themes.unshift("Default");
     return themes;
   }
   loadModules() {
     this.modules = {
-      selectedGuildStore: (0, import_bdapi2.findModuleByProps)("getLastSelectedGuildId"),
-      guildStore: (0, import_bdapi2.findModuleByProps)("getGuilds")
+      selectedGuildStore: DiscordModules.selectedGuildStore,
+      guildStore: DiscordModules.guildStore,
+      app: DiscordModules.app
     };
   }
   loadServerTheme(guildId) {
     const themeName = this.themeAssignments[guildId ?? "Default"];
     for (const theme of this.themes) {
-      import_bdapi2.Themes[theme === themeName ? "enable" : "disable"](theme);
+      import_bdapi3.Themes[theme === themeName ? "enable" : "disable"](theme);
     }
+    this.logger.log("Switched to theme", themeName, "for guild", guildId);
   }
   settingsPanelThemeChangeHandler(guildId, themeId) {
     this.themeAssignments[guildId] = themeId;
-    (0, import_bdapi2.setData)("themeAssignments", this.themeAssignments);
+    (0, import_bdapi3.setData)("themeAssignments", this.themeAssignments);
     if (this.currentGuildId === guildId) {
       this.loadServerTheme(guildId);
     }
@@ -1397,22 +1409,23 @@ var Plugin = class {
         acceptCallback: async () => {
           const updateSuccess = await this.updater.installUpdate();
           if (updateSuccess) {
-            (0, import_bdapi2.showToast)("ServerThemes successfully updated", { type: "success" });
+            (0, import_bdapi3.showToast)("ServerThemes successfully updated", { type: "success" });
           } else {
-            (0, import_bdapi2.showToast)("Failed to update ServerThemes", { type: "error" });
+            (0, import_bdapi3.showToast)("Failed to update ServerThemes", { type: "error" });
           }
         }
       });
     }
   }
-  load() {
-    this.updater = this.updater ?? new Updater({ storagePath: import_bdapi2.Plugins.folder, currentVersion: "3.1.5", updatePath: "https://raw.githubusercontent.com/notmike101/betterdiscord-server-themes/release/serverthemes.plugin.js" });
-    this.banners = this.banners ?? new Banners(document.querySelector("." + (0, import_bdapi2.findModuleByProps)("app", "layers").app));
-    this.themeAssignments = (0, import_bdapi2.getData)("serverthemes", "themeAssignments") ?? {};
+  start() {
     this.loadModules();
+    this.logger = this.logger ?? new Logger("ServerThemes v3.1.8");
+    this.updater = this.updater ?? new Updater({ storagePath: import_bdapi3.Plugins.folder, currentVersion: "3.1.8", updatePath: "https://raw.githubusercontent.com/notmike101/betterdiscord-server-themes/release/serverthemes.plugin.js" });
+    this.banners = this.banners ?? new Banners(document.querySelector("." + this.modules.app.app));
+    this.themeAssignments = (0, import_bdapi3.getData)("serverthemes", "themeAssignments") ?? {};
     for (const guild of this.guilds) {
       if (this.themeAssignments[guild.id] === void 0) {
-        const activeThemes = import_bdapi2.Themes.getAll().filter((theme) => import_bdapi2.Themes.isEnabled(theme.id));
+        const activeThemes = import_bdapi3.Themes.getAll().filter((theme) => import_bdapi3.Themes.isEnabled(theme.id));
         if (activeThemes.length > 0) {
           this.themeAssignments[guild.id] = activeThemes[0].id;
         } else {
@@ -1420,11 +1433,10 @@ var Plugin = class {
         }
       }
     }
-    (0, import_bdapi2.setData)("serverthemes", "themeAssignments", this.themeAssignments);
-  }
-  start() {
+    (0, import_bdapi3.setData)("serverthemes", "themeAssignments", this.themeAssignments);
     this.update();
     this.loadServerTheme(this.currentGuildId);
+    this.logger.log("Plugin started");
   }
   stop() {
     if (this.updateBannerId !== null) {
@@ -1436,7 +1448,7 @@ var Plugin = class {
     this.loadServerTheme(this.currentGuildId);
   }
   getSettingsPanel() {
-    return /* @__PURE__ */ import_bdapi2.React.createElement(SettingsPanel, {
+    return /* @__PURE__ */ import_bdapi3.React.createElement(SettingsPanel, {
       onChangeCallback: this.settingsPanelThemeChangeHandler.bind(this),
       themeAssignments: this.themeAssignments,
       themes: this.themes,
