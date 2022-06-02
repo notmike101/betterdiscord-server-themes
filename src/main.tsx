@@ -1,10 +1,11 @@
 import { React, getData, setData, Themes, Plugins, showToast, findModuleByProps } from 'betterdiscord/bdapi';
-import { Updater, Banners, DiscordModules } from 'betterdiscord-plugin-libs';
+import { Logger, Updater, Banners, DiscordModules } from 'betterdiscord-plugin-libs';
 import { SettingsPanel } from './SettingsPanel';
 
 class Plugin {  
   private updater: Updater;
   private banners: Banners;
+  private logger: Logger;
   private updateBannerId: number;
   private modules: { [key: string]: any };
   private themeAssignments: ThemeAssignments;
@@ -50,6 +51,8 @@ class Plugin {
     for (const theme of this.themes) {
       Themes[theme === themeName ? 'enable' : 'disable'](theme);
     }
+
+    this.logger.log('Switched to theme', themeName, 'for guild', guildId);
   }
 
   private settingsPanelThemeChangeHandler(guildId, themeId) {
@@ -80,9 +83,10 @@ class Plugin {
     }
   }
 
-  public load(): void {
+  public start(): void {
     this.loadModules();
 
+    this.logger = this.logger ?? new Logger('ServerThemes v' + PACKAGE_VERSION);
     this.updater = this.updater ?? new Updater({ storagePath: Plugins.folder, currentVersion: PACKAGE_VERSION, updatePath: BETTERDISCORD_UPDATEURL });
     this.banners = this.banners ?? new Banners(document.querySelector('.' + this.modules.app.app));
     this.themeAssignments = getData('serverthemes', 'themeAssignments') ?? {};
@@ -100,11 +104,11 @@ class Plugin {
     }
 
     setData('serverthemes', 'themeAssignments', this.themeAssignments);
-  }
 
-  public start(): void {
     this.update();
     this.loadServerTheme(this.currentGuildId);
+
+    this.logger.log('Plugin started');
   }
 
   public stop(): void {
