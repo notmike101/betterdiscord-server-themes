@@ -1,6 +1,7 @@
 import { React, getData, setData, Themes, Plugins, showToast, findModuleByProps } from 'betterdiscord/bdapi';
 import { Logger, Updater, Banners, DiscordModules } from 'betterdiscord-plugin-libs';
 import { SettingsPanel } from './SettingsPanel';
+import BdApi from 'BdApi'; 
 
 class Plugin {  
   private updater: Updater;
@@ -15,7 +16,7 @@ class Plugin {
   }
 
   private get guilds(): Guild[] {
-    const guilds: Guild[] = Object.values(this.modules.guildStore.getGuilds())
+    const guilds: Guild[] = Object.values(BdApi.Webpack.getStore("GuildStore").getGuilds())
       .map((guild: Guild) => ({
         id: guild.id,
         name: guild.name,
